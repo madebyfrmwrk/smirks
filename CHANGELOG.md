@@ -1,5 +1,11 @@
 # smirks
 
+## 0.0.2
+
+### Patch Changes
+
+- Verify OIDC trusted publishing pipeline. Releases from 0.0.2 onward are published from CI with cryptographic provenance attestations (the npm "Published with provenance" badge).
+
 ## 0.0.1
 
 ### Patch Changes
