@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>smirks · preview</title>
+  <style>
+    :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #ffffff;
+      color: #111;
+    }
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    h1 { margin: 0; font-size: 18px; font-weight: 600; }
+    .meta { color: #666; font-size: 13px; }
+    .controls { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+    button, select {
+      font: inherit;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: inherit;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f3f3; }
+    input[type="text"] {
+      font: inherit;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: inherit;
+      width: 240px;
+    }
+    .lookup {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      background: #f7f7f7;
+    }
+    .lookup .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .lookup .avatar svg { display: block; width: 100%; height: 100%; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+    }
+    .cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .cell .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .cell .avatar svg { display: block; width: 100%; height: 100%; }
+    .cell .seed {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: #888;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>smirks · preview</h1>
+    <div class="meta">50 random seeds · refresh or click Regenerate for a new set</div>
+    <div class="controls">
+      <label class="meta">
+        palette
+        <select id="palette">
+          <option value="default">default (soft)</option>
+          <option value="bold">bold</option>
+          <option value="monochrome">monochrome</option>
+          <option value="duotone">duotone</option>
+          <option value="currentColor">currentColor (inherits CSS)</option>
+        </select>
+      </label>
+      <button id="regen" type="button">Regenerate</button>
+    </div>
+  </header>
+  <div class="lookup">
+    <div id="lookupAvatar" class="avatar"></div>
+    <label class="meta" style="display: flex; flex-direction: column; gap: 4px;">
+      Lookup a seed
+      <input id="lookupInput" type="text" placeholder="type any seed…" autocomplete="off" />
+    </label>
+  </div>
+
+  <div id="grid" class="grid" style="color: #111"></div>
+
+  <script type="module">
+    import { generateSvg, palettes } from '../dist/index.js';
+
+    const grid = document.getElementById('grid');
+    const paletteSelect = document.getElementById('palette');
+    const regenButton = document.getElementById('regen');
+    const lookupInput = document.getElementById('lookupInput');
+    const lookupAvatar = document.getElementById('lookupAvatar');
+
+    function currentOptions() {
+      const choice = paletteSelect.value;
+      return choice === 'currentColor'
+        ? { mode: 'currentColor' }
+        : { palette: palettes[choice] };
+    }
+
+    function randomSeed() {
+      return Math.random().toString(36).slice(2, 10);
+    }
+
+    function renderLookup() {
+      const seed = lookupInput.value;
+      lookupAvatar.innerHTML = generateSvg(seed, currentOptions());
+    }
+
+    function renderGrid() {
+      const opts = currentOptions();
+      const html = Array.from({ length: 50 }, () => {
+        const seed = randomSeed();
+        const svg = generateSvg(seed, opts);
+        return `<div class="cell"><div class="avatar">${svg}</div><div class="seed" title="${seed}">${seed}</div></div>`;
+      }).join('');
+      grid.innerHTML = html;
+    }
+
+    function renderAll() {
+      renderLookup();
+      renderGrid();
+    }
+
+    paletteSelect.addEventListener('change', renderAll);
+    regenButton.addEventListener('click', renderGrid);
+    lookupInput.addEventListener('input', renderLookup);
+    renderAll();
+  </script>
+</body>
+</html>

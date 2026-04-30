@@ -1,0 +1,99 @@
+{
+  "name": "smirks",
+  "version": "0.0.0",
+  "description": "Deterministic pixel-face avatars for the modern web",
+  "license": "MIT",
+  "author": "Shaan Shivanandan",
+  "homepage": "https://smirks.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madebyfrmwrk/smirks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/madebyfrmwrk/smirks/issues"
+  },
+  "keywords": [
+    "avatar",
+    "avatars",
+    "pixel",
+    "pixel-art",
+    "deterministic",
+    "svg",
+    "react",
+    "tailwind"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:data": "tsx scripts/build-data.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "size": "size-limit",
+    "pack:check": "publint --strict && attw --pack --profile esm-only",
+    "preview": "echo '\\n→ open http://127.0.0.1:5777/scripts/preview.html\\n' && python3 -m http.server --bind 127.0.0.1 5777",
+    "release": "pnpm build && changeset publish"
+  },
+  "size-limit": [
+    {
+      "name": "smirks (core)",
+      "path": "dist/index.js",
+      "limit": "2 KB",
+      "gzip": true
+    },
+    {
+      "name": "smirks/react",
+      "path": "dist/react.js",
+      "limit": "2 KB",
+      "gzip": true,
+      "ignore": [
+        "react"
+      ]
+    }
+  ],
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.2",
+    "@biomejs/biome": "2.4.13",
+    "@changesets/cli": "2.31.0",
+    "@size-limit/preset-small-lib": "12.1.0",
+    "@types/node": "25.6.0",
+    "@types/react": "19.2.14",
+    "publint": "0.3.18",
+    "react": "19.2.5",
+    "size-limit": "12.1.0",
+    "tsup": "8.5.1",
+    "tsx": "4.21.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.5"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
