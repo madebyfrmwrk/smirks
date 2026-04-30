@@ -1,6 +1,6 @@
 {
   "name": "smirks",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Deterministic pixel-face avatars for the modern web",
   "license": "MIT",
   "author": "Shaan Shivanandan",
