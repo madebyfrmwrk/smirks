@@ -12,10 +12,12 @@ These are not preferences. Changing any of them is a breaking change at minimum 
 
 ### The grid
 
-Source SVGs at `~/Desktop/smirks-faces/` were drawn freehand in Figma with sub-32px coordinate adjustments. The build pipeline (`scripts/build-data.ts`) snaps every rect edge to the nearest multiple of 32 in a 512×512 viewBox, producing a clean 16×16 grid stored as a 32-byte packed bitmap per variant in `src/data/{eyes,mouths}.ts`.
+Source SVGs live at `~/Desktop/smirks-faces/` on the maintainer's machine — **outside the repo by design**. They were drawn freehand in Figma with sub-32px coordinate adjustments. The build pipeline (`scripts/build-data.ts`) snaps every rect edge to the nearest multiple of 32 in a 512×512 viewBox, producing a clean 16×16 grid stored as a 32-byte packed bitmap per variant in `src/data/{eyes,mouths}.ts`.
+
+`pnpm build:data` is **maintainer-only** — it cannot run in CI because the source SVGs aren't available there. The committed `src/data/{eyes,mouths}.ts` files are the source of truth for build/test/publish. Removed variants live in `~/Desktop/smirks-faces/_archive/` (the build script ignores subdirectories).
 
 - New variants must be drawn on a 32px grid in Figma. The build script fails loud if any variant's max edge displacement exceeds 16px (half a cell).
-- Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename, run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
+- Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (current gaps at `eyes-7` and `eyes-13` are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
 - Never hand-edit `src/data/eyes.ts` or `src/data/mouths.ts`. They're generated.
 
 ### Determinism
@@ -66,3 +68,15 @@ React is a `peerDependencies` (optional). No new runtime deps without a strong r
 ### Public API is frozen
 
 Anything exported from `src/index.ts` or `src/react.tsx` is a public contract. Adding non-breaking exports is fine; changing or removing existing ones requires a major bump.
+
+## Release pipeline
+
+The package is published on npm as `smirks` and uses **OIDC trusted publisher** for releases — no `NPM_TOKEN`, no static credentials. Trusted publisher entry on npm: `madebyfrmwrk/smirks` repo, workflow filename `release.yml`, no environment.
+
+Hard rules around releases:
+
+- **Do NOT add `NPM_TOKEN` back to `.github/workflows/release.yml` env block.** Changesets prefers `NPM_TOKEN` when present and would silently degrade publishes from cryptographically-attested OIDC to bearer-token auth, dropping the provenance badge on new versions with no warning. The only auth path is OIDC.
+- **Release runner must use Node 24+.** npm 10 (Node 22's default) only uses OIDC for provenance signing, not for authenticating publishes — publishes get rejected with a misleading 404. npm 11 (Node 24's default) uses OIDC end-to-end.
+- **Bundle size hard cap: 2 KB gzipped per entry.** Enforced by `size-limit` config in `package.json`. CI fails if exceeded.
+- **`pnpm pack:check` runs `publint --strict` + `attw --pack --profile esm-only`.** Catches `package.json` exports/types-resolution bugs before publish. Both CI (`ci.yml`) and release (`release.yml`) gate on this.
+- **Release flow:** add a changeset (`pnpm changeset`), commit, push to main. Changesets workflow opens a "Version Packages" PR. Merging that PR triggers Changesets to bump the version, regenerate `CHANGELOG.md`, and publish via OIDC. The maintainer never runs `npm publish` directly.
