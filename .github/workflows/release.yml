@@ -31,11 +31,14 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build data
-        run: pnpm build:data
-
       - name: Build
         run: pnpm build
+
+      - name: Pack lint (publint + attw)
+        run: pnpm pack:check
+
+      - name: Bundle size budget
+        run: pnpm size
 
       - name: Create release PR or publish
         uses: changesets/action@v1
