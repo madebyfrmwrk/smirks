@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>smirks · preview</title>
   <style>
-    :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+    :root {
+      color-scheme: light dark;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      --avatar-radius: 50%;
+    }
     body {
       margin: 0;
       padding: 32px;
@@ -55,7 +59,7 @@
     .lookup .avatar {
       width: 80px;
       height: 80px;
-      border-radius: 50%;
+      border-radius: var(--avatar-radius);
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -74,7 +78,7 @@
     .cell .avatar {
       width: 96px;
       height: 96px;
-      border-radius: 50%;
+      border-radius: var(--avatar-radius);
       overflow: hidden;
     }
     .cell .avatar svg { display: block; width: 100%; height: 100%; }
@@ -104,6 +108,14 @@
           <option value="currentColor">currentColor (inherits CSS)</option>
         </select>
       </label>
+      <label class="meta">
+        shape
+        <select id="shape">
+          <option value="50%">Circle (50%)</option>
+          <option value="16px">Rounded (16px)</option>
+          <option value="0">Square (0)</option>
+        </select>
+      </label>
       <button id="regen" type="button">Regenerate</button>
     </div>
   </header>
@@ -122,6 +134,7 @@
 
     const grid = document.getElementById('grid');
     const paletteSelect = document.getElementById('palette');
+    const shapeSelect = document.getElementById('shape');
     const regenButton = document.getElementById('regen');
     const lookupInput = document.getElementById('lookupInput');
     const lookupAvatar = document.getElementById('lookupAvatar');
@@ -131,6 +144,10 @@
       return choice === 'currentColor'
         ? { mode: 'currentColor' }
         : { palette: palettes[choice] };
+    }
+
+    function applyShape() {
+      document.documentElement.style.setProperty('--avatar-radius', shapeSelect.value);
     }
 
     function randomSeed() {
@@ -158,8 +175,10 @@
     }
 
     paletteSelect.addEventListener('change', renderAll);
+    shapeSelect.addEventListener('change', applyShape);
     regenButton.addEventListener('click', renderGrid);
     lookupInput.addEventListener('input', renderLookup);
+    applyShape();
     renderAll();
   </script>
 </body>

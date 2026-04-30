@@ -104,6 +104,30 @@ const MIXED: Palette = {
 };
 ```
 
+### Shape
+
+The SVG output is **always a 512×512 square** — there's no `shape` prop. Rounding (circle, squircle, rounded rectangle, organic blob, hexagon clip-path, …) is handled by CSS on the wrapper, so the same `<Smirk>` works for circular profile pics, rounded cards, and full-bleed squares with no API change.
+
+```tsx
+// Square (raw output — no rounding)
+<Smirk seed={user.id} className="w-12 h-12" />
+
+// Circle (the most common avatar shape)
+<Smirk seed={user.id} className="w-12 h-12 rounded-full" />
+
+// Rounded rectangle
+<Smirk seed={user.id} className="w-12 h-12 rounded-2xl" />
+
+// Custom shape — anything CSS supports
+<Smirk
+  seed={user.id}
+  className="w-12 h-12"
+  style={{ borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%' }}
+/>
+```
+
+Plain CSS works the same way — wrap the SVG (or the React component) in any element and apply `border-radius` / `clip-path` / `mask` to the wrapper.
+
 ## Determinism contract
 
 | Input                                            | Guaranteed                                         |
