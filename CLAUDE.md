@@ -44,7 +44,7 @@ Never reorder or remove entries from `EYES` / `MOUTHS` / `palettes.default.pairs
 
 ### Locked palettes
 
-`palettes.default` (soft, Tailwind `*-600`/`*-700` on `*-50`) and `palettes.bold` (white on the soft palette's foregrounds, derived via `.map()`) ship with frozen hex codes in this exact rainbow order: red, orange, amber, yellow, lime, emerald, cyan, blue, violet, purple, fuchsia, rose. Do not edit existing entries.
+`palettes.default` (soft, Tailwind `*-600`/`*-700` on `*-50`) and `palettes.bold` (white on the soft palette's foregrounds, derived via `.map()`) ship with frozen hex codes in this exact order: red, orange, amber, yellow, lime, emerald, cyan, blue, violet, purple, fuchsia, rose — the twelve chromatic hues in colour-wheel order — then neutral, which has no spectral position and so sits last. Do not edit existing entries.
 
 ### SVG output contract
 

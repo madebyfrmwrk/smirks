@@ -78,8 +78,8 @@ const svg = generateSvg('alice', { palette: MY });  // custom palette
 ```ts
 import { palettes } from 'smirks';
 
-palettes.default;     // soft: Tailwind *-600/700 on *-50, 12 pairs
-palettes.bold;        // white on the soft palette's foregrounds, 12 pairs
+palettes.default;     // soft: Tailwind *-600/700 on *-50, 13 pairs (12 hues + neutral)
+palettes.bold;        // white on the soft palette's foregrounds, 13 pairs
 palettes.monochrome;  // one black-on-white pair (every smirk identical color)
 palettes.duotone;     // black-on-white + white-on-black
 ```

@@ -4,6 +4,10 @@ import type { ColorPair, Palette } from './types';
  * Soft palette: Tailwind *-600 (or *-700 for yellow/lime) on *-50.
  * All pairs cleared WCAG 2.1 non-text contrast (3:1) and APCA Lc >= 50.
  *
+ * Twelve chromatic hues in colour-wheel order, then neutral. Neutral has no
+ * spectral position, so it sits last — which is also the only slot the
+ * append-only rule allows.
+ *
  * ORDER IS LOCKED. Do not reorder. Do not edit existing entries.
  * Append-only — and even appending is a major version bump because it shifts
  * `% length` outputs for some seeds.
@@ -21,6 +25,7 @@ const SOFT_PAIRS = [
   { fg: '#9333ea', bg: '#faf5ff' }, // purple-600  / purple-50
   { fg: '#c026d3', bg: '#fdf4ff' }, // fuchsia-600 / fuchsia-50
   { fg: '#e11d48', bg: '#fff1f2' }, // rose-600    / rose-50
+  { fg: '#525252', bg: '#fafafa' }, // neutral-600 / neutral-50
 ] as const satisfies readonly ColorPair[];
 
 /**
