@@ -17,7 +17,8 @@ Source SVGs live at `~/Desktop/smirks-faces/` on the maintainer's machine — **
 `pnpm build:data` is **maintainer-only** — it cannot run in CI because the source SVGs aren't available there. The committed `src/data/{eyes,mouths}.ts` files are the source of truth for build/test/publish. Removed variants live in `~/Desktop/smirks-faces/_archive/` (the build script ignores subdirectories).
 
 - New variants must be drawn on a 32px grid in Figma. The build script fails loud if any variant's max edge displacement exceeds 16px (half a cell).
-- Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (retired: `eyes-7`, `eyes-12`, `eyes-13`, `mouth-8`, `mouth-9` — the gaps are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
+- No two variants in a group may quantize to the same bitmap. The build script fails loud on collisions — duplicates add no variety and skew the seed distribution toward the face they share.
+- Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (retired: `eyes-5`, `eyes-7`, `eyes-8`, `eyes-12`, `eyes-13`, `mouth-8`, `mouth-9` — the gaps are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
 - Never hand-edit `src/data/eyes.ts` or `src/data/mouths.ts`. They're generated.
 
 ### Determinism
@@ -34,7 +35,7 @@ Hash bit allocation (FNV-1a 32-bit):
 
 | Bits   | Use                          | Modulo                                              |
 |--------|------------------------------|-----------------------------------------------------|
-| 0–7    | eye index                    | `% EYES.length` (currently 12)                      |
+| 0–7    | eye index                    | `% EYES.length` (currently 10)                      |
 | 8–15   | mouth index                  | `% MOUTHS.length` (currently 7)                     |
 | 16–23  | palette pick                 | pairs mode: `% pairs.length` · arrays mode: fg index |
 | 24–31  | bg index (arrays mode only)  | arrays mode: `% bg.length` · pairs mode: ignored    |

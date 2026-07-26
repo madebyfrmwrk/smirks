@@ -353,6 +353,20 @@ function processGroup(prefix: 'eyes' | 'mouth'): Variant[] {
   });
 }
 
+/**
+ * Groups variants that quantize to the same bitmap. Duplicates render
+ * identically, so they add no variety and skew the seed distribution toward
+ * whatever face they share.
+ */
+function findCollisions(variants: Variant[]): string[][] {
+  const byBitmap = new Map<string, string[]>();
+  for (const v of variants) {
+    const key = v.bitmap.join(',');
+    byBitmap.set(key, [...(byBitmap.get(key) ?? []), v.filename]);
+  }
+  return [...byBitmap.values()].filter((names) => names.length > 1);
+}
+
 function main(): void {
   console.log(`reading source from ${SOURCE_DIR}`);
   const eyes = processGroup('eyes');
@@ -368,6 +382,18 @@ function main(): void {
     throw new Error(
       `build:data: ${failures.length} variant(s) exceed the displacement gate. ` +
         `Redraw the offending variant(s) in Figma on a clean ${CELL}px grid.`,
+    );
+  }
+
+  const collisions = [...findCollisions(eyes), ...findCollisions(mouths)];
+  if (collisions.length > 0) {
+    for (const names of collisions) {
+      console.error(`  ✗ identical bitmaps: ${names.join(', ')}`);
+    }
+    throw new Error(
+      `build:data: ${collisions.length} group(s) of variants share a bitmap. ` +
+        `Duplicates render identically and skew the seed distribution — archive ` +
+        `the extras, or redraw them so they differ on the ${GRID}x${GRID} grid.`,
     );
   }
 
