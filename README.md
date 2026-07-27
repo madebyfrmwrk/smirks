@@ -80,8 +80,9 @@ import { palettes } from 'smirks';
 
 palettes.default;     // soft: Tailwind *-600/700 on *-50, 13 pairs (12 hues + neutral)
 palettes.bold;        // white on the soft palette's foregrounds, 13 pairs
-palettes.monochrome;  // one black-on-white pair (every smirk identical color)
-palettes.duotone;     // black-on-white + white-on-black
+palettes.monochromeLight; // one black-on-white pair (every smirk identical color)
+palettes.monochromeDark;  // one white-on-black pair (the inverse)
+palettes.duotone;         // both of the above — the seed picks
 ```
 
 ### Custom palettes

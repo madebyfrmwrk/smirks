@@ -82,12 +82,27 @@ describe('color resolution', () => {
     }
   });
 
-  it('monochrome preset always returns black on white', () => {
+  it('monochromeLight preset always returns black on white', () => {
     for (const seed of ['x', 'y', 'z', 'longer', 'even longer one']) {
-      const r = generate(seed, { palette: palettes.monochrome });
+      const r = generate(seed, { palette: palettes.monochromeLight });
       expect(r.fg).toBe('#000000');
       expect(r.bg).toBe('#ffffff');
     }
+  });
+
+  it('monochromeDark preset always returns white on black', () => {
+    for (const seed of ['x', 'y', 'z', 'longer', 'even longer one']) {
+      const r = generate(seed, { palette: palettes.monochromeDark });
+      expect(r.fg).toBe('#ffffff');
+      expect(r.bg).toBe('#000000');
+    }
+  });
+
+  it('duotone is exactly the union of the two monochrome presets', () => {
+    expect(palettes.duotone.pairs).toEqual([
+      ...palettes.monochromeLight.pairs,
+      ...palettes.monochromeDark.pairs,
+    ]);
   });
 
   it('throws on empty palettes', () => {

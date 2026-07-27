@@ -37,14 +37,17 @@ const BOLD_PAIRS: readonly ColorPair[] = SOFT_PAIRS.map(({ fg }) => ({
   bg: fg,
 }));
 
+/**
+ * The two achromatic pairs, declared once. `duotone` is their union, so the
+ * three presets can never drift apart.
+ */
+const MONO_LIGHT = { fg: '#000000', bg: '#ffffff' } as const satisfies ColorPair;
+const MONO_DARK = { fg: '#ffffff', bg: '#000000' } as const satisfies ColorPair;
+
 export const palettes = {
   default: { pairs: SOFT_PAIRS } satisfies Palette,
   bold: { pairs: BOLD_PAIRS } satisfies Palette,
-  monochrome: { pairs: [{ fg: '#000000', bg: '#ffffff' }] } satisfies Palette,
-  duotone: {
-    pairs: [
-      { fg: '#000000', bg: '#ffffff' },
-      { fg: '#ffffff', bg: '#000000' },
-    ],
-  } satisfies Palette,
+  monochromeLight: { pairs: [MONO_LIGHT] } satisfies Palette,
+  monochromeDark: { pairs: [MONO_DARK] } satisfies Palette,
+  duotone: { pairs: [MONO_LIGHT, MONO_DARK] } satisfies Palette,
 } as const;
