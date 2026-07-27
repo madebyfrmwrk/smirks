@@ -41,7 +41,7 @@ describe('color resolution', () => {
     expect(a.bg).toBe('#000');
     expect(b.fg).toBe('#fff');
     expect(b.bg).toBe('#000');
-    // Different seeds → different shapes (very likely with 12 * 10 = 120 combinations)
+    // Different seeds → different shapes (very likely with 12 * 8 = 96 combinations)
     expect([a.eye, a.mouth]).not.toEqual([b.eye, b.mouth]);
   });
 

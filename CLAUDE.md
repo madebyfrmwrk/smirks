@@ -18,7 +18,7 @@ Source SVGs live at `~/Desktop/smirks-faces/` on the maintainer's machine — **
 
 - New variants must be drawn on a 32px grid in Figma. The build script fails loud if any variant's max edge displacement exceeds 16px (half a cell).
 - No two variants in a group may quantize to the same bitmap. The build script fails loud on collisions — duplicates add no variety and skew the seed distribution toward the face they share.
-- Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (retired: `eyes-5`, `eyes-7`, `eyes-8`, `eyes-11`, `eyes-12`, `eyes-13`, `mouth-8`, `mouth-9` — the gaps are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
+- Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (retired: `eyes-5`, `eyes-7`, `eyes-8`, `eyes-11`, `eyes-12`, `eyes-13`, `mouth-8`, `mouth-9`, `mouth-10`, `mouth-12` — the gaps are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
 - Never hand-edit `src/data/eyes.ts` or `src/data/mouths.ts`. They're generated.
 
 ### Determinism
@@ -36,7 +36,7 @@ Hash bit allocation (FNV-1a 32-bit):
 | Bits   | Use                          | Modulo                                              |
 |--------|------------------------------|-----------------------------------------------------|
 | 0–7    | eye index                    | `% EYES.length` (currently 12)                      |
-| 8–15   | mouth index                  | `% MOUTHS.length` (currently 10)                    |
+| 8–15   | mouth index                  | `% MOUTHS.length` (currently 8)                     |
 | 16–23  | palette pick                 | pairs mode: `% pairs.length` · arrays mode: fg index |
 | 24–31  | bg index (arrays mode only)  | arrays mode: `% bg.length` · pairs mode: ignored    |
 
