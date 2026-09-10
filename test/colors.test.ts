@@ -10,14 +10,27 @@ describe('color resolution', () => {
     const b = generate(SEED);
     expect(a.fg).toBe(b.fg);
     expect(a.bg).toBe(b.bg);
-    // The default palette is the soft preset — any pair has fg from the locked SOFT_PAIRS.
-    const defaultFgs = palettes.default.pairs.map((p) => p.fg);
-    expect(defaultFgs).toContain(a.fg);
+    // The default palette is the soft preset — fg and bg always come from one pair.
+    expect(palettes.default.pairs).toContainEqual({ fg: a.fg, bg: a.bg });
   });
 
   it('alternate preset (palettes.bold) picks white fg', () => {
     const a = generate(SEED, { palette: palettes.bold });
     expect(a.fg).toBe('#ffffff');
+  });
+
+  it('bold lands on the same hue as default for any seed', () => {
+    // Documented: a profile header can render the avatar from the default palette
+    // and its cover from bold and get a matching hue. That holds because both are
+    // pairs mode, the same length, and bold is derived from default index for
+    // index — break any of those and this promise breaks silently.
+    for (let i = 0; i < 200; i++) {
+      const seed = `user-${i}`;
+      const soft = generate(seed);
+      const bold = generate(seed, { palette: palettes.bold });
+      expect(bold.bg, seed).toBe(soft.fg);
+      expect(bold.fg, seed).toBe('#ffffff');
+    }
   });
 
   it('partial override: fg only — bg still comes from palette', () => {

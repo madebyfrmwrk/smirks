@@ -53,11 +53,46 @@ describe('SVG structure', () => {
     expect((svg.match(new RegExp(`fill="${fg}"`, 'g')) ?? []).length).toBe(2);
   });
 
-  it('default-palette output uses one of the SOFT_PAIRS background colors', () => {
+  it('carries an intrinsic 1em box so an unstyled avatar is not 300x300', () => {
+    const svg = generateSvg('alice');
+    expect(svg).toContain('width="1em"');
+    expect(svg).toContain('height="1em"');
+  });
+
+  it('strips characters XML forbids outright from the title', () => {
+    // Vertical tab. Illegal in XML 1.0 even as a numeric character reference,
+    // so it can only be removed — and `title` carries display names.
+    const title = `Bob${String.fromCharCode(0x0b)}Smith`;
+    const svg = generateSvg('alice', { title });
+    expect(svg).toContain('<title>BobSmith</title>');
+  });
+
+  it('never emits a character that would make the SVG unparseable as XML', () => {
+    const hostile = [0x00, 0x01, 0x08, 0x0b, 0x0c, 0x0e, 0x1f]
+      .map((code) => String.fromCharCode(code))
+      .join('x');
+    const svg = generateSvg('alice', { title: hostile });
+    const illegal = [...svg].filter((ch) => {
+      const code = ch.codePointAt(0) ?? 0;
+      return code < 0x09 || (code > 0x0d && code < 0x20);
+    });
+    expect(illegal).toEqual([]);
+  });
+
+  it('replaces an unpaired surrogate rather than emitting it', () => {
+    const svg = generateSvg('alice', { title: `a${String.fromCharCode(0xd800)}b` });
+    expect(svg).toContain(`<title>a${String.fromCharCode(0xfffd)}b</title>`);
+  });
+
+  it('keeps tab, newline and carriage return, which XML allows', () => {
+    const svg = generateSvg('alice', { title: 'a\tb\nc\rd' });
+    expect(svg).toContain('<title>a\tb\nc\rd</title>');
+  });
+
+  it('default-palette output uses one of the locked background colors', () => {
     const svg = generateSvg('alice');
     const bgMatch = svg.match(/<rect[^>]*fill="([^"]+)"/);
     expect(bgMatch?.[1]).toBeDefined();
-    const bgColors = palettes.default.pairs.map((p) => p.bg);
-    expect(bgColors).toContain(bgMatch?.[1]);
+    expect(palettes.default.pairs.map((p) => p.bg)).toContain(bgMatch?.[1]);
   });
 });

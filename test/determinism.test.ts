@@ -63,3 +63,33 @@ describe('determinism', () => {
     }
   });
 });
+
+describe('seed normalisation', () => {
+  it('treats a number and its decimal string as the same seed, forever', () => {
+    for (const n of [0, 7, 42, 999, -1, 1.5]) {
+      expect(generate(n)).toEqual(generate(String(n)));
+      expect(generateSvg(n)).toBe(generateSvg(String(n)));
+    }
+  });
+
+  it('gives different numbers different avatars', () => {
+    // Before the guard, every non-string seed skipped the hash loop and
+    // returned the FNV offset basis — one identical face for every user.
+    const svgs = new Set([1, 2, 3, 4, 5, 42, 999].map((n) => generateSvg(n)));
+    expect(svgs.size).toBeGreaterThan(1);
+    expect(generateSvg(42)).not.toBe(generateSvg(999));
+  });
+
+  it('rejects every other type with a branded TypeError', () => {
+    for (const bad of [null, undefined, {}, [], true, Number.NaN, Number.POSITIVE_INFINITY]) {
+      // @ts-expect-error — the point is the runtime guard for untyped callers.
+      expect(() => generate(bad), String(bad)).toThrow(TypeError);
+      // @ts-expect-error — same.
+      expect(() => generate(bad), String(bad)).toThrow(/^smirks: seed must be a string/);
+    }
+  });
+
+  it('accepts the empty string as an ordinary seed', () => {
+    expect(() => generateSvg('')).not.toThrow();
+  });
+});

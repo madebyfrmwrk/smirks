@@ -1,0 +1,5 @@
+---
+'smirks': major
+---
+
+**Breaking:** every emitted SVG now carries `width="1em" height="1em"`, and `title` is stripped of characters XML forbids. Without an intrinsic size an SVG with a viewBox falls back to the 300x300 default replaced-element box, which the React fix does not reach for `el.innerHTML = generateSvg(id)`, `<img src=data:>`, CSS backgrounds or headless rasterisers; `1em` makes an unstyled avatar track the surrounding font size instead. Both are presentation attributes at specificity 0, so `size-12`, `style={{width:48}}` and `svg{width:100%}` all still win and the CSS-only sizing stance is unchanged. Separately, `escapeText` and `escapeAttr` now drop the C0 controls except tab, newline and carriage return, the two non-characters, and unpaired surrogates — XML 1.0 forbids these outright, even as numeric character references, so they can only be removed rather than escaped, and one vertical tab pasted into a display name previously made the avatar unparseable wherever `xmlns` matters. Output changes for every seed because of the two new attributes, and for `title` values that were already malformed. Shapes and colors are unaffected.

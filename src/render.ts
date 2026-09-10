@@ -4,9 +4,9 @@ import { fnv1a } from './hash';
 import { palettes } from './palettes';
 import type { ColorPair, GeneratedSmirk, Palette, SmirkColorOptions } from './types';
 
-export type SvgOptions = SmirkColorOptions & { title?: string };
+export type SvgOptions = SmirkColorOptions & { title?: string | undefined };
 
-const VIEWBOX_SIZE = 512;
+export const VIEWBOX_SIZE = 512;
 const CELL = 32;
 const GRID = 16;
 
@@ -101,13 +101,80 @@ function resolveColors(hash: number, options: SmirkColorOptions): ColorPair {
   };
 }
 
-/** Returns the resolved indices and colors for a seed, without rendering SVG. */
-export function generate(seed: string, options: SmirkColorOptions = {}): GeneratedSmirk {
-  const hash = fnv1a(seed);
+/**
+ * Normalises a seed to the string the hash consumes.
+ *
+ * Numbers are accepted because `seed={user.id}` with an integer primary key is
+ * the obvious call — `generate(42)` and `generate('42')` are the same avatar,
+ * forever. Everything else throws rather than collapsing silently: `fnv1a`
+ * loops on `str.length`, so any other type used to skip the loop entirely and
+ * return the offset basis, giving every such seed one identical face.
+ */
+function toSeed(seed: string | number): string {
+  if (typeof seed === 'string') return seed;
+  if (typeof seed === 'number' && Number.isFinite(seed)) return String(seed);
+  const got = typeof seed === 'number' ? seed : typeof seed;
+  throw new TypeError(`smirks: seed must be a string or a finite number; got ${got}`);
+}
+
+type SmirkParts = ColorPair & {
+  readonly eye: number;
+  readonly mouth: number;
+  readonly eyePath: string;
+  readonly mouthPath: string;
+};
+
+/**
+ * Everything a renderer needs, resolved once from the seed.
+ *
+ * `generateSvg` serialises these into a string and `smirks/react` turns them
+ * into elements. Routing both through here is what stops the two renderers
+ * from drifting — see test/react.test.tsx, which asserts they agree.
+ */
+export function resolveParts(seed: string | number, options: SmirkColorOptions): SmirkParts {
+  const hash = fnv1a(toSeed(seed));
   const eye = (hash & 0xff) % EYES.length;
   const mouth = ((hash >>> 8) & 0xff) % MOUTHS.length;
+  const eyeBitmap = EYES[eye];
+  const mouthBitmap = MOUTHS[mouth];
+  if (eyeBitmap === undefined || mouthBitmap === undefined) {
+    throw new Error('smirks: variant data is missing — did you run `pnpm build:data`?');
+  }
   const { fg, bg } = resolveColors(hash, options);
+  return {
+    eye,
+    mouth,
+    eyePath: bitmapToPath(eyeBitmap),
+    mouthPath: bitmapToPath(mouthBitmap),
+    fg,
+    bg,
+  };
+}
+
+/** Returns the resolved indices and colors for a seed, without rendering SVG. */
+export function generate(seed: string | number, options: SmirkColorOptions = {}): GeneratedSmirk {
+  const { eye, mouth, fg, bg } = resolveParts(seed, options);
   return { eye, mouth, fg, bg };
+}
+
+/**
+ * Characters XML 1.0 forbids outright — illegal even as numeric character
+ * references, so they can only be removed, never escaped. The C0 controls
+ * except tab/LF/CR, plus the two non-characters.
+ *
+ * Reachable input: `title` carries user-supplied display names. One vertical
+ * tab pasted from a word processor otherwise makes the SVG unparseable in the
+ * non-HTML embedding contexts `xmlns` exists to serve.
+ */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: matching them is the point — XML 1.0 forbids these outright, so they are stripped rather than escaped.
+const XML_ILLEGAL_RE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
+
+/** Unpaired surrogates are equally illegal; U+FFFD is the standard stand-in. */
+const LONE_SURROGATE_RE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+/** Drops what XML cannot represent. Runs before the entity pass, never after. */
+function stripIllegal(value: string): string {
+  return value.replace(XML_ILLEGAL_RE, '').replace(LONE_SURROGATE_RE, '\uFFFD');
 }
 
 const ATTR_ESCAPES: Record<string, string> = {
@@ -118,7 +185,7 @@ const ATTR_ESCAPES: Record<string, string> = {
 };
 
 function escapeAttr(value: string): string {
-  return value.replace(/[&"<>]/g, (ch) => ATTR_ESCAPES[ch] ?? ch);
+  return stripIllegal(value).replace(/[&"<>]/g, (ch) => ATTR_ESCAPES[ch] ?? ch);
 }
 
 const TEXT_ESCAPES: Record<string, string> = {
@@ -128,7 +195,7 @@ const TEXT_ESCAPES: Record<string, string> = {
 };
 
 export function escapeText(value: string): string {
-  return value.replace(/[&<>]/g, (ch) => TEXT_ESCAPES[ch] ?? ch);
+  return stripIllegal(value).replace(/[&<>]/g, (ch) => TEXT_ESCAPES[ch] ?? ch);
 }
 
 /**
@@ -136,31 +203,24 @@ export function escapeText(value: string): string {
  *
  * The string is byte-identical for identical inputs across runtimes — this is
  * the load-bearing determinism guarantee documented in CLAUDE.md.
+ *
+ * `width`/`height` are `1em` so an unstyled avatar tracks the surrounding font
+ * size instead of falling back to the 300x300 default replaced-element box.
+ * They are presentation attributes at specificity 0, so any CSS still wins.
  */
-export function generateSvg(seed: string, options: SvgOptions = {}): string {
-  const hash = fnv1a(seed);
-  const eyeIdx = (hash & 0xff) % EYES.length;
-  const mouthIdx = ((hash >>> 8) & 0xff) % MOUTHS.length;
-  const eyeBitmap = EYES[eyeIdx];
-  const mouthBitmap = MOUTHS[mouthIdx];
-  if (eyeBitmap === undefined || mouthBitmap === undefined) {
-    throw new Error('smirks: variant data is missing — did you run `pnpm build:data`?');
-  }
+export function generateSvg(seed: string | number, options: SvgOptions = {}): string {
+  const { eyePath, mouthPath, fg, bg } = resolveParts(seed, options);
 
-  const colors = resolveColors(hash, options);
-  const eyePath = bitmapToPath(eyeBitmap);
-  const mouthPath = bitmapToPath(mouthBitmap);
-
-  const fgAttr = escapeAttr(colors.fg);
-  const bgAttr = escapeAttr(colors.bg);
+  const fgAttr = escapeAttr(fg);
+  const bgAttr = escapeAttr(bg);
 
   const title = options.title;
   const ariaAttrs = title === undefined ? ' aria-hidden="true"' : ' role="img"';
   const titleNode = title === undefined ? '' : `<title>${escapeText(title)}</title>`;
 
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}"` +
-    ` shape-rendering="crispEdges"${ariaAttrs}>` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"` +
+    ` viewBox="0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}" shape-rendering="crispEdges"${ariaAttrs}>` +
     titleNode +
     `<rect width="${VIEWBOX_SIZE}" height="${VIEWBOX_SIZE}" fill="${bgAttr}"/>` +
     `<path d="${eyePath}" fill="${fgAttr}"/>` +
