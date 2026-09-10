@@ -173,6 +173,12 @@ The package is published on npm as `smirks` and uses **OIDC trusted publisher** 
 
 Hard rules around releases:
 
+- **While the version is `0.x`, breaking changes ship as `minor` changesets, never `major`.**
+  A `major` changeset bumps straight to 1.0.0 and spends the stability signal early. Every
+  changeset in the repo so far is `minor` and most are labelled `**Breaking:**` — that pairing is
+  deliberate, not an oversight. 1.0 waits until the variant set is large enough that the avatar
+  space (currently 1,248) is no longer the headline limitation.
+
 - **Do NOT add `NPM_TOKEN` back to `.github/workflows/release.yml` env block.** Changesets prefers `NPM_TOKEN` when present and would silently degrade publishes from cryptographically-attested OIDC to bearer-token auth, dropping the provenance badge on new versions with no warning. The only auth path is OIDC.
 - **Release runner must use Node 24+.** npm 10 (Node 22's default) only uses OIDC for provenance signing, not for authenticating publishes — publishes get rejected with a misleading 404. npm 11 (Node 24's default) uses OIDC end-to-end.
 - **Bundle size hard cap: 2 KB gzipped per entry.** Enforced by `size-limit` config in `package.json`. CI fails if exceeded.
