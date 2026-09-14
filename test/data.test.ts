@@ -9,6 +9,19 @@ import { MOUTHS } from '../src/data/mouths';
  * These tests re-anchor the build-time invariants to the shipped artifacts.
  */
 const BITMAP_BYTES = 32; // 16x16 cells, 2 bytes per row
+const GRID = 16;
+/**
+ * The viewBox crops two cells from each edge (`VIEWBOX` in src/render.ts), so
+ * only cells 2–13 are ever visible. A variant drawn outside them would be
+ * silently clipped rather than fail — this is the check that makes it fail.
+ */
+const FRAME_MIN = 2;
+const FRAME_MAX = 13;
+
+/** Mirrors `isCellSet` in src/render.ts: row-major, 2 bytes per row, MSB-first. */
+function isCellSet(bitmap: Uint8Array, x: number, y: number): boolean {
+  return ((bitmap[y * 2 + (x >>> 3)] ?? 0) & (1 << (7 - (x & 7)))) !== 0;
+}
 
 const GROUPS = [
   { name: 'EYES', variants: EYES, expected: 12 },
@@ -38,6 +51,20 @@ describe('committed variant data', () => {
             bitmap.some((byte) => byte !== 0),
             `${name}[${index}] is all zero`,
           ).toBe(true);
+        }
+      });
+
+      it('draws nothing outside the visible frame', () => {
+        for (const [index, bitmap] of variants.entries()) {
+          for (let y = 0; y < GRID; y++) {
+            for (let x = 0; x < GRID; x++) {
+              if (!isCellSet(bitmap, x, y)) continue;
+              const inside = x >= FRAME_MIN && x <= FRAME_MAX && y >= FRAME_MIN && y <= FRAME_MAX;
+              expect(inside, `${name}[${index}] sets cell (${x}, ${y}) outside the frame`).toBe(
+                true,
+              );
+            }
+          }
         }
       });
 

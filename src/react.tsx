@@ -1,5 +1,5 @@
 import { type ComponentPropsWithoutRef, forwardRef, type JSX } from 'react';
-import { resolveParts, VIEWBOX_SIZE } from './render';
+import { resolveParts, VIEWBOX, VIEWBOX_SIZE } from './render';
 import type { SmirkColorOptions } from './types';
 
 export type SmirkProps = SmirkColorOptions &
@@ -56,7 +56,7 @@ export const Smirk = forwardRef<SVGSVGElement, SmirkProps>(function Smirk(
       {...rest}
       ref={ref}
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
+      viewBox={VIEWBOX}
       shapeRendering="crispEdges"
       role={labelled ? 'img' : undefined}
       aria-hidden={labelled ? undefined : true}

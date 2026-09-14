@@ -50,8 +50,9 @@ describe('determinism', () => {
     expect(generateSvg('alice')).toContain('shape-rendering="crispEdges"');
   });
 
-  it('output always carries viewBox="0 0 512 512"', () => {
-    expect(generateSvg('alice')).toContain('viewBox="0 0 512 512"');
+  it('output always carries viewBox="64 64 384 384"', () => {
+    // The 16-cell grid cropped by two cells per edge; see VIEWBOX in src/render.ts.
+    expect(generateSvg('alice')).toContain('viewBox="64 64 384 384"');
   });
 
   it('byte-identical output across 50 random-ish seeds (regression guard)', () => {

@@ -139,7 +139,7 @@ describe('<Smirk> props', () => {
     const markup = renderToStaticMarkup(
       <Smirk seed="alice" viewBox="0 0 1 1" shapeRendering="auto" role="presentation" />,
     );
-    expect(markup).toContain('viewBox="0 0 512 512"');
+    expect(markup).toContain('viewBox="64 64 384 384"');
     expect(markup).toContain('shape-rendering="crispEdges"');
     expect(markup).not.toContain('role="presentation"');
   });

@@ -26,6 +26,11 @@ const CELL = 32;
 const GRID = 16;
 /** Half a cell. Exceed this on any edge and the script aborts. */
 const DISPLACEMENT_GATE = CELL / 2;
+/**
+ * The renderer's viewBox crops this many cells from each edge (see `VIEWBOX`
+ * in src/render.ts), so a variant drawn there would be clipped, not shown.
+ */
+const FRAME_INSET_CELLS = 2;
 
 type Rect = { x: number; y: number; w: number; h: number };
 type Variant = {
@@ -367,6 +372,23 @@ function findCollisions(variants: Variant[]): string[][] {
   return [...byBitmap.values()].filter((names) => names.length > 1);
 }
 
+/** Filled cells that the renderer's viewBox would crop away. */
+function findFrameOverflow(v: Variant): [number, number][] {
+  const outside: [number, number][] = [];
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const set = ((v.bitmap[y * 2 + (x >>> 3)] ?? 0) & (1 << (7 - (x & 7)))) !== 0;
+      const inside =
+        x >= FRAME_INSET_CELLS &&
+        x < GRID - FRAME_INSET_CELLS &&
+        y >= FRAME_INSET_CELLS &&
+        y < GRID - FRAME_INSET_CELLS;
+      if (set && !inside) outside.push([x, y]);
+    }
+  }
+  return outside;
+}
+
 function main(): void {
   console.log(`reading source from ${SOURCE_DIR}`);
   const eyes = processGroup('eyes');
@@ -382,6 +404,21 @@ function main(): void {
     throw new Error(
       `build:data: ${failures.length} variant(s) exceed the displacement gate. ` +
         `Redraw the offending variant(s) in Figma on a clean ${CELL}px grid.`,
+    );
+  }
+
+  const overflows = [...eyes, ...mouths]
+    .map((v) => ({ filename: v.filename, cells: findFrameOverflow(v) }))
+    .filter((o) => o.cells.length > 0);
+  if (overflows.length > 0) {
+    for (const o of overflows) {
+      const cells = o.cells.map(([x, y]) => `(${x}, ${y})`).join(', ');
+      console.error(`  ✗ ${o.filename}: cells outside the visible frame: ${cells}`);
+    }
+    throw new Error(
+      `build:data: ${overflows.length} variant(s) draw outside the visible frame. ` +
+        `The viewBox crops ${FRAME_INSET_CELLS} cells from each edge, so only cells ` +
+        `${FRAME_INSET_CELLS}–${GRID - FRAME_INSET_CELLS - 1} are shown — move the drawing inward.`,
     );
   }
 

@@ -187,7 +187,7 @@ Passing `title`, `aria-label` or `aria-labelledby` switches the SVG to `role="im
 
 ## Shape
 
-The SVG output is **always a 512×512 square** — there's no `shape` prop. Rounding is CSS on the `<svg>` itself, so the same `<Smirk>` works for circular profile pics, rounded cards, and full-bleed squares with no API change.
+The SVG output is **always square**, with the face filling about half of it — there's no `shape` prop. Rounding is CSS on the `<svg>` itself, so the same `<Smirk>` works for circular profile pics, rounded cards, and full-bleed squares with no API change.
 
 ```tsx
 <Smirk seed={user.id} className="size-12" />              // square

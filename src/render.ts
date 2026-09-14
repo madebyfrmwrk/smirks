@@ -11,6 +11,20 @@ const CELL = 32;
 const GRID = 16;
 
 /**
+ * Cells of empty margin cropped from each edge of the grid by the viewBox.
+ *
+ * Every variant is drawn inside cells 5–10 (test/data.test.ts pins the frame),
+ * so a full-grid viewBox showed the face at 37% of the box and it stopped
+ * reading below ~32px. Cropping two cells per edge takes it to 50%. The
+ * bitmaps, paths and background rect are untouched: this is framing, not art.
+ */
+const FRAME_INSET_CELLS = 2;
+const FRAME_INSET = FRAME_INSET_CELLS * CELL;
+const FRAME_SIZE = VIEWBOX_SIZE - 2 * FRAME_INSET;
+/** The `viewBox` attribute every renderer emits. Part of the output contract. */
+export const VIEWBOX = `${FRAME_INSET} ${FRAME_INSET} ${FRAME_SIZE} ${FRAME_SIZE}`;
+
+/**
  * Bitmap layout (load-bearing):
  *   - 32 bytes per variant = 256 bits = 16 rows * 16 columns.
  *   - Row-major: row r occupies bytes r*2 and r*2+1.
@@ -220,7 +234,7 @@ export function generateSvg(seed: string | number, options: SvgOptions = {}): st
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"` +
-    ` viewBox="0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}" shape-rendering="crispEdges"${ariaAttrs}>` +
+    ` viewBox="${VIEWBOX}" shape-rendering="crispEdges"${ariaAttrs}>` +
     titleNode +
     `<rect width="${VIEWBOX_SIZE}" height="${VIEWBOX_SIZE}" fill="${bgAttr}"/>` +
     `<path d="${eyePath}" fill="${fgAttr}"/>` +
