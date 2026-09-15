@@ -5,6 +5,7 @@ import { EYES } from '../src/data/eyes';
 import { MOUTHS } from '../src/data/mouths';
 import { fnv1a } from '../src/hash';
 import { bitmapToPath, type SvgOptions } from '../src/render';
+import type { SmirkScale } from '../src/types';
 
 /**
  * The determinism guarantee, made falsifiable.
@@ -25,6 +26,7 @@ type GoldenOptions = {
   readonly fg?: string;
   readonly bg?: string;
   readonly title?: string;
+  readonly scale?: SmirkScale;
 };
 
 type Golden = {
@@ -42,11 +44,11 @@ const golden: Golden = JSON.parse(
 );
 
 function toSvgOptions(options: GoldenOptions): SvgOptions {
-  const { palette, mode, fg, bg, title } = options;
+  const { palette, mode, fg, bg, title, scale } = options;
   if (mode === 'currentColor') {
-    return { mode, title };
+    return { mode, title, scale };
   }
-  return { palette: palette === undefined ? undefined : palettes[palette], fg, bg, title };
+  return { palette: palette === undefined ? undefined : palettes[palette], fg, bg, title, scale };
 }
 
 function label(seed: string | number, options: GoldenOptions): string {

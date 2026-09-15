@@ -27,8 +27,8 @@ const GRID = 16;
 /** Half a cell. Exceed this on any edge and the script aborts. */
 const DISPLACEMENT_GATE = CELL / 2;
 /**
- * The renderer's viewBox crops this many cells from each edge (see `VIEWBOX`
- * in src/render.ts), so a variant drawn there would be clipped, not shown.
+ * The tightest frame (`scale: 'lg'`, see `resolveFrame` in src/render.ts) crops
+ * this many cells from each edge, so a variant drawn there would be clipped.
  */
 const FRAME_INSET_CELLS = 2;
 
@@ -417,7 +417,7 @@ function main(): void {
     }
     throw new Error(
       `build:data: ${overflows.length} variant(s) draw outside the visible frame. ` +
-        `The viewBox crops ${FRAME_INSET_CELLS} cells from each edge, so only cells ` +
+        `scale 'lg' crops ${FRAME_INSET_CELLS} cells from each edge, so only cells ` +
         `${FRAME_INSET_CELLS}–${GRID - FRAME_INSET_CELLS - 1} are shown — move the drawing inward.`,
     );
   }

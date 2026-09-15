@@ -24,6 +24,13 @@ export type SmirkColorOptions =
       bg?: never;
     };
 
+/**
+ * How much of the box the face fills. Sizing stays CSS; this is the optical
+ * size, the way SF Symbols scale a glyph inside its layout box. `md` shows the
+ * full 16-cell grid, `lg` crops two cells from each edge, `sm` adds two.
+ */
+export type SmirkScale = 'sm' | 'md' | 'lg';
+
 export type GeneratedSmirk = {
   readonly eye: number;
   readonly mouth: number;

@@ -49,6 +49,14 @@ describe('<Smirk> agrees with generateSvg', () => {
     }
   });
 
+  it('renders the same document for every scale', () => {
+    for (const scale of ['sm', 'md', 'lg'] as const) {
+      expect(canonicalize(renderToStaticMarkup(<Smirk seed="alice" scale={scale} />)), scale).toBe(
+        canonicalize(generateSvg('alice', { scale })),
+      );
+    }
+  });
+
   it('renders the same document for every shipped palette and currentColor', () => {
     for (const [name, palette] of Object.entries(palettes)) {
       expect(
@@ -135,11 +143,17 @@ describe('<Smirk> props', () => {
     expect(sized).not.toContain('width="1em"');
   });
 
+  it('consumes scale as framing, never as the SVG scale attribute', () => {
+    const markup = renderToStaticMarkup(<Smirk seed="alice" scale="lg" />);
+    expect(markup).toContain('viewBox="64 64 384 384"');
+    expect(markup).not.toContain('scale=');
+  });
+
   it('does not let a caller clobber the output contract', () => {
     const markup = renderToStaticMarkup(
       <Smirk seed="alice" viewBox="0 0 1 1" shapeRendering="auto" role="presentation" />,
     );
-    expect(markup).toContain('viewBox="64 64 384 384"');
+    expect(markup).toContain('viewBox="0 0 512 512"');
     expect(markup).toContain('shape-rendering="crispEdges"');
     expect(markup).not.toContain('role="presentation"');
   });

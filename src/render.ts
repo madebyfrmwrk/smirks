@@ -2,27 +2,48 @@ import { EYES } from './data/eyes';
 import { MOUTHS } from './data/mouths';
 import { fnv1a } from './hash';
 import { palettes } from './palettes';
-import type { ColorPair, GeneratedSmirk, Palette, SmirkColorOptions } from './types';
+import type { ColorPair, GeneratedSmirk, Palette, SmirkColorOptions, SmirkScale } from './types';
 
-export type SvgOptions = SmirkColorOptions & { title?: string | undefined };
+export type SvgOptions = SmirkColorOptions & {
+  title?: string | undefined;
+  scale?: SmirkScale | undefined;
+};
 
 export const VIEWBOX_SIZE = 512;
 const CELL = 32;
 const GRID = 16;
 
 /**
- * Cells of empty margin cropped from each edge of the grid by the viewBox.
+ * Frames, as cells cropped from (+) or added to (−) each edge of the grid.
  *
- * Every variant is drawn inside cells 5–10 (test/data.test.ts pins the frame),
- * so a full-grid viewBox showed the face at 37% of the box and it stopped
- * reading below ~32px. Cropping two cells per edge takes it to 50%. The
- * bitmaps, paths and background rect are untouched: this is framing, not art.
+ * Every variant is drawn inside cells 5–10 (test/data.test.ts pins it), so the
+ * full grid shows the face at 37% of the box, which stops reading below ~40px.
+ * `lg` crops two cells per edge for 50%; `sm` adds two for 30%. This is framing
+ * only: the bitmaps and paths never change, so `lg` may not crop past cell 2.
  */
-const FRAME_INSET_CELLS = 2;
-const FRAME_INSET = FRAME_INSET_CELLS * CELL;
-const FRAME_SIZE = VIEWBOX_SIZE - 2 * FRAME_INSET;
-/** The `viewBox` attribute every renderer emits. Part of the output contract. */
-export const VIEWBOX = `${FRAME_INSET} ${FRAME_INSET} ${FRAME_SIZE} ${FRAME_SIZE}`;
+const FRAME_INSET_CELLS: Record<SmirkScale, number> = { sm: -2, md: 0, lg: 2 };
+export const DEFAULT_SCALE: SmirkScale = 'md';
+
+export type Frame = {
+  /** Top-left corner of the viewBox; negative for a frame wider than the grid. */
+  readonly offset: number;
+  readonly size: number;
+  readonly viewBox: string;
+};
+
+/**
+ * The viewBox for a scale. The background rect covers exactly this square, so
+ * a frame wider than the grid (`sm`) is still fully painted.
+ */
+export function resolveFrame(scale: SmirkScale = DEFAULT_SCALE): Frame {
+  const cells = FRAME_INSET_CELLS[scale];
+  if (cells === undefined) {
+    throw new TypeError(`smirks: scale must be 'sm', 'md' or 'lg'; got ${String(scale)}`);
+  }
+  const offset = cells * CELL;
+  const size = VIEWBOX_SIZE - 2 * offset;
+  return { offset, size, viewBox: `${offset} ${offset} ${size} ${size}` };
+}
 
 /**
  * Bitmap layout (load-bearing):
@@ -224,6 +245,7 @@ export function escapeText(value: string): string {
  */
 export function generateSvg(seed: string | number, options: SvgOptions = {}): string {
   const { eyePath, mouthPath, fg, bg } = resolveParts(seed, options);
+  const { offset, size, viewBox } = resolveFrame(options.scale);
 
   const fgAttr = escapeAttr(fg);
   const bgAttr = escapeAttr(bg);
@@ -234,9 +256,9 @@ export function generateSvg(seed: string | number, options: SvgOptions = {}): st
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"` +
-    ` viewBox="${VIEWBOX}" shape-rendering="crispEdges"${ariaAttrs}>` +
+    ` viewBox="${viewBox}" shape-rendering="crispEdges"${ariaAttrs}>` +
     titleNode +
-    `<rect width="${VIEWBOX_SIZE}" height="${VIEWBOX_SIZE}" fill="${bgAttr}"/>` +
+    `<rect x="${offset}" y="${offset}" width="${size}" height="${size}" fill="${bgAttr}"/>` +
     `<path d="${eyePath}" fill="${fgAttr}"/>` +
     `<path d="${mouthPath}" fill="${fgAttr}"/>` +
     `</svg>`

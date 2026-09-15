@@ -11,9 +11,10 @@ import { MOUTHS } from '../src/data/mouths';
 const BITMAP_BYTES = 32; // 16x16 cells, 2 bytes per row
 const GRID = 16;
 /**
- * The viewBox crops two cells from each edge (`VIEWBOX` in src/render.ts), so
- * only cells 2–13 are ever visible. A variant drawn outside them would be
- * silently clipped rather than fail — this is the check that makes it fail.
+ * The tightest frame (`scale: 'lg'`, see `resolveFrame` in src/render.ts) crops
+ * two cells from each edge, so only cells 2–13 are visible there. A variant
+ * drawn outside them would be silently clipped rather than fail — this is the
+ * check that makes it fail.
  */
 const FRAME_MIN = 2;
 const FRAME_MAX = 13;

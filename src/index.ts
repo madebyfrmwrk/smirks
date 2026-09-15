@@ -6,4 +6,5 @@ export type {
   GeneratedSmirk,
   Palette,
   SmirkColorOptions,
+  SmirkScale,
 } from './types';

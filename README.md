@@ -60,7 +60,12 @@ import { palettes } from 'smirks';
 
 // Sizing is CSS — no size prop. className and style land on the <svg> itself.
 <Smirk seed={user.id} className="size-12 rounded-full" />
+
+// Optical size: how much of the box the face fills. Use lg below ~40px.
+<Smirk seed={user.id} scale="lg" className="size-5 rounded-full" />
 ```
+
+`scale` is `'sm' | 'md' | 'lg'` and defaults to `md`. It is the same idea as SF Symbols' image scale: the drawing never changes, only how much margin surrounds it. `md` leaves the face at 37% of the box, which is the intended look at 48px and up but too thin for badges and list rows; `lg` crops the margin to 50% so the face still reads at 20px; `sm` adds margin for 30%. Pick it from the rendered size, the way you would pick an icon weight.
 
 `seed` accepts a string or a finite number, so an integer primary key works as-is. Anything else throws rather than silently collapsing every user onto one face.
 
@@ -73,6 +78,7 @@ import { generateSvg } from 'smirks';
 
 const svg = generateSvg('alice');                   // string starting with <svg…>
 const svg = generateSvg('alice', { palette: MY });  // custom palette
+const svg = generateSvg('alice', { scale: 'lg' });  // tight framing for small renders
 ```
 
 The SVG carries `width="1em" height="1em"`, so an unstyled avatar tracks the surrounding font size instead of falling back to the 300×300 default. Both are presentation attributes at specificity 0, so any CSS wins:
@@ -187,7 +193,7 @@ Passing `title`, `aria-label` or `aria-labelledby` switches the SVG to `role="im
 
 ## Shape
 
-The SVG output is **always square**, with the face filling about half of it — there's no `shape` prop. Rounding is CSS on the `<svg>` itself, so the same `<Smirk>` works for circular profile pics, rounded cards, and full-bleed squares with no API change.
+The SVG output is **always square** — there's no `shape` prop, and how much of it the face fills is `scale`, above. Rounding is CSS on the `<svg>` itself, so the same `<Smirk>` works for circular profile pics, rounded cards, and full-bleed squares with no API change.
 
 ```tsx
 <Smirk seed={user.id} className="size-12" />              // square

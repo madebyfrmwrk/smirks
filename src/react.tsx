@@ -1,13 +1,19 @@
 import { type ComponentPropsWithoutRef, forwardRef, type JSX } from 'react';
-import { resolveParts, VIEWBOX, VIEWBOX_SIZE } from './render';
-import type { SmirkColorOptions } from './types';
+import { resolveFrame, resolveParts } from './render';
+import type { SmirkColorOptions, SmirkScale } from './types';
 
 export type SmirkProps = SmirkColorOptions &
   Omit<
     ComponentPropsWithoutRef<'svg'>,
-    'children' | 'dangerouslySetInnerHTML' | 'mode' | 'title'
+    'children' | 'dangerouslySetInnerHTML' | 'mode' | 'scale' | 'title'
   > & {
     seed: string | number;
+    /**
+     * How much of the box the face fills: `md` (default) shows the full grid,
+     * `lg` crops the margin so the face reads below ~40px, `sm` adds margin.
+     * Pixel size is still CSS.
+     */
+    scale?: SmirkScale | undefined;
     /**
      * Accessible label. Rendered as a `<title>` inside the SVG; the SVG carries
      * `role="img"`. Omit for decorative avatars (the SVG gets `aria-hidden="true"`)
@@ -36,10 +42,11 @@ export type SmirkProps = SmirkColorOptions &
  * attributes CLAUDE.md pins as the output contract (a caller may not).
  */
 export const Smirk = forwardRef<SVGSVGElement, SmirkProps>(function Smirk(
-  { seed, mode, palette, fg, bg, title, ...rest },
+  { seed, mode, palette, fg, bg, scale, title, ...rest },
   ref,
 ): JSX.Element {
   const parts = resolveParts(seed, mode === 'currentColor' ? { mode } : { mode, palette, fg, bg });
+  const frame = resolveFrame(scale);
 
   // An avatar the caller has already named must not also be hidden from the
   // accessibility tree, or the name it was given is silently discarded.
@@ -56,14 +63,20 @@ export const Smirk = forwardRef<SVGSVGElement, SmirkProps>(function Smirk(
       {...rest}
       ref={ref}
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={VIEWBOX}
+      viewBox={frame.viewBox}
       shapeRendering="crispEdges"
       role={labelled ? 'img' : undefined}
       aria-hidden={labelled ? undefined : true}
     >
       {/* Exactly one child: `<title>a {b}</title>` renders empty in production. */}
       {title === undefined ? null : <title>{title}</title>}
-      <rect width={VIEWBOX_SIZE} height={VIEWBOX_SIZE} fill={parts.bg} />
+      <rect
+        x={frame.offset}
+        y={frame.offset}
+        width={frame.size}
+        height={frame.size}
+        fill={parts.bg}
+      />
       <path d={parts.eyePath} fill={parts.fg} />
       <path d={parts.mouthPath} fill={parts.fg} />
     </svg>

@@ -23,6 +23,7 @@ import { MOUTHS } from '../src/data/mouths';
 import { fnv1a } from '../src/hash';
 import { palettes } from '../src/palettes';
 import { bitmapToPath, generateSvg, type SvgOptions } from '../src/render';
+import type { SmirkScale } from '../src/types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
@@ -36,6 +37,7 @@ type GoldenOptions = {
   fg?: string;
   bg?: string;
   title?: string;
+  scale?: SmirkScale;
 };
 
 type GoldenCase = { seed: string | number; options: GoldenOptions };
@@ -98,6 +100,8 @@ const MODE_OPTIONS: GoldenOptions[] = [
   { fg: '#ffffff' },
   { bg: '#000000' },
   { fg: '#ffffff', bg: '#000000' },
+  { scale: 'sm' },
+  { scale: 'lg' },
 ];
 
 /** Escaping and XML-legality cases, pinned so a regression is visible. */
@@ -114,11 +118,11 @@ const TITLE_CASES: GoldenCase[] = [
 // ---------- Assembly ----------
 
 function toSvgOptions(options: GoldenOptions): SvgOptions {
-  const { palette, mode, fg, bg, title } = options;
+  const { palette, mode, fg, bg, title, scale } = options;
   if (mode === 'currentColor') {
-    return { mode, title };
+    return { mode, title, scale };
   }
-  return { palette: palette === undefined ? undefined : palettes[palette], fg, bg, title };
+  return { palette: palette === undefined ? undefined : palettes[palette], fg, bg, title, scale };
 }
 
 function buildCases(): GoldenCase[] {

@@ -17,7 +17,7 @@ Source SVGs live at `~/Desktop/smirks-faces/` on the maintainer's machine — **
 `pnpm build:data` is **maintainer-only** — it cannot run in CI because the source SVGs aren't available there. The committed `src/data/{eyes,mouths}.ts` files are the source of truth for build/test/publish. Removed variants live in `~/Desktop/smirks-faces/_archive/` (the build script ignores subdirectories).
 
 - New variants must be drawn on a 32px grid in Figma. The build script fails loud if any variant's max edge displacement exceeds 16px (half a cell).
-- Only cells 2–13 are visible. The renderer's `viewBox` crops two cells from each edge (`VIEWBOX` in `src/render.ts`) because every face is drawn inside cells 5–10 and the full grid showed it at 37% of the box, unreadable below ~32px. The build script and `test/data.test.ts` both fail loud on a variant that sets a cell outside the frame.
+- Variants must stay inside cells 2–13. The `scale` option reframes the grid (`resolveFrame` in `src/render.ts`): `md` shows all 16 cells, `lg` crops two per edge because every face is drawn inside cells 5–10 and the full grid shows it at 37% of the box, unreadable below ~40px, and `sm` adds two per edge. The build script and `test/data.test.ts` both fail loud on a variant that sets a cell the `lg` frame would crop.
 - No two variants in a group may quantize to the same bitmap. The build script fails loud on collisions — duplicates add no variety and skew the seed distribution toward the face they share.
 - Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (retired: `eyes-5`, `eyes-7`, `eyes-8`, `eyes-11`, `eyes-12`, `eyes-13`, `mouth-8`, `mouth-9`, `mouth-10`, `mouth-12` — the gaps are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
 - Never hand-edit `src/data/eyes.ts` or `src/data/mouths.ts`. They're generated.
@@ -107,7 +107,7 @@ about the same seed in the same app.
 Every emitted SVG must include:
 - `xmlns="http://www.w3.org/2000/svg"` (required for non-HTML embedding contexts)
 - `width="1em" height="1em"` (without an intrinsic size an unstyled SVG falls back to 300×300; presentation attributes sit at specificity 0, so any CSS still wins)
-- `viewBox="64 64 384 384"` (the 16-cell grid cropped by two cells per edge; the background `<rect>` still covers the full 512×512 so nothing shows through)
+- `viewBox` per `scale`: `md` (default) `0 0 512 512`, `lg` `64 64 384 384`, `sm` `-64 -64 640 640`. The background `<rect>` carries `x`/`y`/`width`/`height` equal to the viewBox so a frame wider than the grid is still fully painted
 - `shape-rendering="crispEdges"` (preserves the pixel feel at any size)
 - `fill="currentColor"` paths when `mode: 'currentColor'`
 

@@ -39,6 +39,22 @@ describe('SVG structure', () => {
     expect((svg.match(/<path/g) ?? []).length).toBe(2);
   });
 
+  it('background rect covers the viewBox exactly at every scale', () => {
+    // `sm` frames wider than the grid, so a fixed 512 rect would leave the
+    // margin unpainted; the rect must follow the frame, not the grid.
+    for (const scale of ['sm', 'md', 'lg'] as const) {
+      const svg = generateSvg('alice', { scale });
+      const [x, y, w, h] = svg.match(/viewBox="([^"]+)"/)?.[1]?.split(' ') ?? [];
+      const rect = svg.match(/<rect ([^/]+)\/>/)?.[1] ?? '';
+      expect(rect, scale).toContain(`x="${x}" y="${y}" width="${w}" height="${h}"`);
+    }
+  });
+
+  it('rejects an unknown scale with a branded TypeError', () => {
+    // @ts-expect-error — the point is the runtime guard for untyped callers.
+    expect(() => generateSvg('alice', { scale: 'xl' })).toThrow(/^smirks: scale must be/);
+  });
+
   it('background rect uses the resolved bg color', () => {
     const { bg } = generate('alice', { bg: '#abcdef' });
     expect(bg).toBe('#abcdef');
