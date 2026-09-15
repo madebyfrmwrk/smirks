@@ -1,5 +1,11 @@
 # smirks
 
+## 0.4.0
+
+### Minor Changes
+
+- c515292: **Breaking:** the default framing goes back to the full 16-cell grid (`viewBox="0 0 512 512"`), and the 12-cell crop that 0.3.0 made the default becomes an option: `scale`. It takes `'sm' | 'md' | 'lg'` on both `generateSvg` and `<Smirk>`, defaulting to `md`. `md` shows the whole grid with the face at 37% of the box, which is the right look at 48px and up; `lg` crops two cells per edge to 50% so a 20px badge still reads; `sm` adds two cells per edge for 30%. This is optical sizing in the SF Symbols sense: the bitmaps, paths, hash and palettes are untouched, only the viewBox moves, and the background `<rect>` now carries `x`, `y`, `width` and `height` equal to the viewBox so the `sm` frame, which is wider than the grid, is fully painted. 0.3.0 was one frame for every size, and a single frame cannot serve a 136px profile picture and a 20px badge at once, which is why it lasted a day. An unknown `scale` throws a `smirks:`-prefixed `TypeError`, like an unknown seed type. The frame invariant from 0.3.0 stays and is pinned to the `lg` crop: every variant must sit inside cells 2–13.
+
 ## 0.3.0
 
 ### Minor Changes
