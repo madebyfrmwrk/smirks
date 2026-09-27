@@ -1,5 +1,11 @@
 # smirks
 
+## 0.5.0
+
+### Minor Changes
+
+- b8c7361: **Breaking:** the default palette steps from Tailwind `*-600` on `*-50` to `*-700` on `*-100`, uniformly — every seed renders in a different colour, and the per-hue exception for amber, yellow and lime is gone because all thirteen foregrounds are now `*-700`. A `*-50` tint sits within about 1.06:1 of white, so on a white page the avatar barely read as a shape at all; `*-100` roughly doubles that separation, taking the average disc-against-white from 1.064 to 1.149. Darkening the foreground in the same step is what kept the change affordable rather than merely survivable: the old `*-600` foregrounds on `*-100` still cleared the 3:1 non-text bar, but by only 3.7% at the worst hue — orange at 3.11:1 and APCA Lc 52.9 against a floor of 50 — whereas `*-700` clears **4.5:1**, the stricter text bar, on all thirteen pairs. The measured floor rises from 3.3526:1 / Lc 57.963 to 4.5097:1 / Lc 65.2721, `palettes.bold` picks the new foregrounds up automatically since it is derived from the same array, and `test/contrast.test.ts` now asserts the 4.5:1 margin as well so it cannot be spent again without a deliberate edit. Shapes are unaffected.
+
 ## 0.4.0
 
 ### Minor Changes
