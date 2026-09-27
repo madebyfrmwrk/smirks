@@ -131,7 +131,7 @@ reads as a cut-out, which is usually what you want where the two overlap.
 ```ts
 import { palettes } from 'smirks';
 
-palettes.default;         // soft: 13 hue-matched pairs (*-600/700 on its own *-50 tint)
+palettes.default;         // soft: 13 hue-matched pairs (*-700 on its own *-100 tint)
 palettes.bold;            // white on the soft palette's foregrounds, 13 pairs
 palettes.monochromeLight; // one black-on-white pair (every smirk identical color)
 palettes.monochromeDark;  // one white-on-black pair (the inverse)
@@ -160,7 +160,7 @@ const MIXED: Palette = {
 };
 ```
 
-The contrast guarantee covers the shipped palettes as shipped. A custom palette, or an `fg`/`bg` override, opts out of it — including partial overrides: `fg="#ffffff"` alone leaves the seed to pick a near-white background, which lands between 1.03:1 and 1.10:1. Override both, or override one against a palette whose other half you control:
+The contrast guarantee covers the shipped palettes as shipped. A custom palette, or an `fg`/`bg` override, opts out of it — including partial overrides: `fg="#ffffff"` alone leaves the seed to pick a near-white background, which lands between 1.07:1 and 1.22:1. Override both, or override one against a palette whose other half you control:
 
 ```tsx
 <Smirk seed={user.id} palette={palettes.bold} fg="#ffffff" />  // white on saturated

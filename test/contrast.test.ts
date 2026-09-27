@@ -92,19 +92,19 @@ describe('contrast helpers', () => {
 describe('palettes.default', () => {
   it('ships the locked pairs, hue-matched, in colour-wheel order', () => {
     expect(palettes.default.pairs).toEqual([
-      { fg: '#dc2626', bg: '#fef2f2' }, // red-600     / red-50
-      { fg: '#ea580c', bg: '#fff7ed' }, // orange-600  / orange-50
-      { fg: '#b45309', bg: '#fffbeb' }, // amber-700   / amber-50
-      { fg: '#a16207', bg: '#fefce8' }, // yellow-700  / yellow-50
-      { fg: '#4d7c0f', bg: '#f7fee7' }, // lime-700    / lime-50
-      { fg: '#059669', bg: '#ecfdf5' }, // emerald-600 / emerald-50
-      { fg: '#0891b2', bg: '#ecfeff' }, // cyan-600    / cyan-50
-      { fg: '#2563eb', bg: '#eff6ff' }, // blue-600    / blue-50
-      { fg: '#7c3aed', bg: '#f5f3ff' }, // violet-600  / violet-50
-      { fg: '#9333ea', bg: '#faf5ff' }, // purple-600  / purple-50
-      { fg: '#c026d3', bg: '#fdf4ff' }, // fuchsia-600 / fuchsia-50
-      { fg: '#e11d48', bg: '#fff1f2' }, // rose-600    / rose-50
-      { fg: '#525252', bg: '#fafafa' }, // neutral-600 / neutral-50
+      { fg: '#b91c1c', bg: '#fee2e2' }, // red-700     / red-100
+      { fg: '#c2410c', bg: '#ffedd5' }, // orange-700  / orange-100
+      { fg: '#b45309', bg: '#fef3c7' }, // amber-700   / amber-100
+      { fg: '#a16207', bg: '#fef9c3' }, // yellow-700  / yellow-100
+      { fg: '#4d7c0f', bg: '#ecfccb' }, // lime-700    / lime-100
+      { fg: '#047857', bg: '#d1fae5' }, // emerald-700 / emerald-100
+      { fg: '#0e7490', bg: '#cffafe' }, // cyan-700    / cyan-100
+      { fg: '#1d4ed8', bg: '#dbeafe' }, // blue-700    / blue-100
+      { fg: '#6d28d9', bg: '#ede9fe' }, // violet-700  / violet-100
+      { fg: '#7e22ce', bg: '#f3e8ff' }, // purple-700  / purple-100
+      { fg: '#a21caf', bg: '#fae8ff' }, // fuchsia-700 / fuchsia-100
+      { fg: '#be123c', bg: '#ffe4e6' }, // rose-700    / rose-100
+      { fg: '#404040', bg: '#f5f5f5' }, // neutral-700 / neutral-100
     ]);
   });
 
@@ -120,14 +120,24 @@ describe('palettes.default', () => {
       expect(gap, `${fg} on ${bg}`).toBeLessThanOrEqual(HUE_TOLERANCE);
       worstGap = Math.max(worstGap, gap);
     }
-    // amber-700 against amber-50 — Tailwind's tints are not perfectly hue-constant.
-    expect(worstGap).toBeCloseTo(22.0, 1);
+    // amber-700 against amber-100 — Tailwind's tints are not perfectly hue-constant.
+    expect(worstGap).toBeCloseTo(22.0351, 3);
   });
 
   it('clears both bars on every pair', () => {
     for (const { fg, bg } of palettes.default.pairs) {
       expect(wcag(fg, bg), `${fg} on ${bg}`).toBeGreaterThanOrEqual(WCAG_FLOOR);
       expect(Math.abs(apca(fg, bg)), `${fg} on ${bg}`).toBeGreaterThanOrEqual(APCA_FLOOR);
+    }
+  });
+
+  it('clears the stricter 4.5:1 text bar as well, on every pair', () => {
+    // Not required — an avatar is non-text content, so 3:1 is the bar it has to
+    // meet. But *-700 on *-100 clears 4.5:1 on all thirteen, and that margin is
+    // what made darkening the background affordable: the old *-600 foregrounds
+    // on *-100 sat at 3.11:1 at the worst hue, 3.7% above the floor.
+    for (const { fg, bg } of palettes.default.pairs) {
+      expect(wcag(fg, bg), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
     }
   });
 
@@ -138,10 +148,11 @@ describe('palettes.default', () => {
       worstWcag = Math.min(worstWcag, wcag(fg, bg));
       worstApca = Math.min(worstApca, Math.abs(apca(fg, bg)));
     }
-    // Both minima are orange-600 #ea580c on orange-50 #fff7ed. Moving amber from
-    // *-600 to *-700 lifted the floor here: amber was the worst pair at 3.07 / Lc 56.0.
-    expect(worstWcag).toBeCloseTo(3.3526, 4);
-    expect(worstApca).toBeCloseTo(57.963, 3);
+    // WCAG floor is amber-700 on amber-100; the APCA floor is orange-700 on
+    // orange-100. Moving the palette to *-700 on *-100 lifted both: at *-600 on
+    // *-50 the floor was 3.3526 / Lc 57.963.
+    expect(worstWcag).toBeCloseTo(4.5097, 4);
+    expect(worstApca).toBeCloseTo(65.2721, 4);
   });
 });
 

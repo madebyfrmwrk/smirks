@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## What this is
 
@@ -17,7 +17,6 @@ Source SVGs live at `~/Desktop/smirks-faces/` on the maintainer's machine — **
 `pnpm build:data` is **maintainer-only** — it cannot run in CI because the source SVGs aren't available there. The committed `src/data/{eyes,mouths}.ts` files are the source of truth for build/test/publish. Removed variants live in `~/Desktop/smirks-faces/_archive/` (the build script ignores subdirectories).
 
 - New variants must be drawn on a 32px grid in Figma. The build script fails loud if any variant's max edge displacement exceeds 16px (half a cell).
-- Variants must stay inside cells 2–13. The `scale` option reframes the grid (`resolveFrame` in `src/render.ts`): `md` shows all 16 cells, `lg` crops two per edge because every face is drawn inside cells 5–10 and the full grid shows it at 37% of the box, unreadable below ~40px, and `sm` adds two per edge. The build script and `test/data.test.ts` both fail loud on a variant that sets a cell the `lg` frame would crop.
 - No two variants in a group may quantize to the same bitmap. The build script fails loud on collisions — duplicates add no variety and skew the seed distribution toward the face they share.
 - Adding a variant: drop the SVG into `~/Desktop/smirks-faces/` with the next `eyes-N` / `mouth-N` filename — **do not reuse removed numbers** (retired: `eyes-5`, `eyes-7`, `eyes-8`, `eyes-11`, `eyes-12`, `eyes-13`, `mouth-8`, `mouth-9`, `mouth-10`, `mouth-12` — the gaps are intentional and preserve filename → Figma-export provenance). Then run `pnpm build:data`, open `scripts/diff/index.html`, commit the regenerated `src/data/*.ts` plus a changeset.
 - Never hand-edit `src/data/eyes.ts` or `src/data/mouths.ts`. They're generated.
@@ -78,7 +77,7 @@ diffs stay small: when a variant changes, the seeds stay put and only the values
 
 ### Locked palettes
 
-`palettes.default` (soft, Tailwind `*-700` on `*-100`, uniformly) and
+`palettes.default` (soft, Tailwind `*-600` on `*-50`, or `*-700` where `*-600` is too light) and
 `palettes.bold` (white on the soft palette's foregrounds, derived via `.map()`) ship with frozen
 hex codes in this exact order: red, orange, amber, yellow, lime, emerald, cyan, blue, violet,
 purple, fuchsia, rose — the twelve chromatic hues in colour-wheel order — then neutral, which has
@@ -92,19 +91,11 @@ ground reads as a rendering bug rather than as variety. Do not reintroduce it. T
 ceiling of 1,248 avatars — a 50% chance of a duplicate at 42 users — which the README states
 outright rather than hiding.
 
-**The step is `*-700` on `*-100`, and both halves of that are load-bearing.** Through 0.4.0 it
-was `*-600` on `*-50` with amber, yellow and lime already at `*-700`. A `*-50` tint sits within
-about 1.06:1 of white, so on a white page the avatar barely read as a shape; `*-100` roughly
-doubles that separation. Darkening the foreground in the same step is what kept the change
-affordable — the old `*-600` foregrounds on `*-100` still cleared 3:1, but by only 3.7% at the
-worst hue (orange, 3.11:1 / Lc 52.9), whereas `*-700` clears 4.5:1 on all thirteen. Do not move
-the background darker again without moving the foreground with it.
-
-`test/contrast.test.ts` asserts every pair against both the 3:1 non-text bar and the stricter
-4.5:1 text bar, asserts the hue match itself (foreground and background within 30° of hue, worst
-actual 22° on amber, since Tailwind's tints are not perfectly hue-constant), and pins the
-measured minima — WCAG 4.5097 on amber-700/amber-100, APCA Lc 65.2721 on orange-700/orange-100 —
-as erosion tripwires.
+Amber is `amber-700 #b45309`, not `amber-600`. Amber-600 was the palette's weakest pair at
+3.07:1 / Lc 56.0; `*-700` lifts it to 4.84:1 / Lc 71.5, which is the same rule yellow and lime
+already followed. `test/contrast.test.ts` asserts every pair, asserts the hue match itself
+(foreground and background within 30° of hue, worst actual 22° on amber), and pins the measured
+minima (WCAG 3.3526, APCA Lc 57.963, both orange-600 on orange-50) as erosion tripwires.
 
 `palettes` is deep-frozen at module init. It is shared global state, and the two entries each
 bundle their own copy, so an unfrozen mutation would make `generateSvg` and `<Smirk>` disagree
@@ -115,7 +106,7 @@ about the same seed in the same app.
 Every emitted SVG must include:
 - `xmlns="http://www.w3.org/2000/svg"` (required for non-HTML embedding contexts)
 - `width="1em" height="1em"` (without an intrinsic size an unstyled SVG falls back to 300×300; presentation attributes sit at specificity 0, so any CSS still wins)
-- `viewBox` per `scale`: `md` (default) `0 0 512 512`, `lg` `64 64 384 384`, `sm` `-64 -64 640 640`. The background `<rect>` carries `x`/`y`/`width`/`height` equal to the viewBox so a frame wider than the grid is still fully painted
+- `viewBox="0 0 512 512"`
 - `shape-rendering="crispEdges"` (preserves the pixel feel at any size)
 - `fill="currentColor"` paths when `mode: 'currentColor'`
 
